@@ -23,3 +23,14 @@
 /app/Config/core.php
 /app/Config/database.php
 /vendors/*
+
+# Debug & Logs
+*.txt
+*.log
+
+# Uploaded files
+/uploads/*
+
+# Config.php
+config.php
+includes/config.php
