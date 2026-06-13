@@ -88,15 +88,16 @@ $no_pinjam = '#' . str_pad($data['id_peminjaman'], 5, '0', STR_PAD_LEFT);
         .signature-container {
             margin-top: 35px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            gap: 15px;
         }
         .signature-box {
             text-align: center;
             width: 160px;
-            font-size: 12px;
+            font-size: 11px;
         }
         .signature-line {
-            height: 60px;
+            height: 50px;
             border-bottom: 1px solid #000;
             margin-bottom: 5px;
         }
@@ -186,6 +187,11 @@ $no_pinjam = '#' . str_pad($data['id_peminjaman'], 5, '0', STR_PAD_LEFT);
                 <div>Peminjam,</div>
                 <div class="signature-line"></div>
                 <div class="fw-bold"><?= htmlspecialchars($data['nama_lengkap']) ?></div>
+            </div>
+            <div class="signature-box">
+                <div>Admin (Kembali),</div>
+                <div class="signature-line"></div>
+                <div class="fw-bold">(................)</div>
             </div>
         </div>
     </div>
