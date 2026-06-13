@@ -245,6 +245,12 @@ require_once '../includes/sidebar.php';
                             </td>
                             <td class="px-3 aksi-col">
                                 <?php if ($row['status'] === 'dipinjam'): ?>
+                                <a href="../struk.php?id=<?= $row['id_peminjaman'] ?>"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-primary me-1"
+                                   title="Cetak Struk">
+                                    <i class="bi bi-printer"></i>
+                                </a>
                                 <button class="btn btn-sm btn-outline-success me-1"
                                         onclick="bukaModalKembali(<?= $row['id_peminjaman'] ?>, '<?= htmlspecialchars($row['nama_barang'], ENT_QUOTES) ?>')"
                                         title="Kembalikan">
