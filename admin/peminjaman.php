@@ -156,43 +156,42 @@ require_once '../includes/sidebar.php';
     <?php include_once '../includes/alert_modal.php'; ?>
 
     <!-- Toolbar -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body py-3">
-            <form method="GET" class="row g-2 align-items-center">
-                <div class="col-12 col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white">
-                            <i class="bi bi-search text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0" name="search"
-                               placeholder="Cari nama peminjam atau barang..." value="<?= $search ?>">
-                    </div>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+
+            <!-- Kiri: Search + Filter -->
+            <form method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+                <div class="input-group" style="width: 260px;">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" name="search"
+                           placeholder="Cari nama peminjam atau barang..." value="<?= $search ?>">
                 </div>
-                <div class="col-12 col-md-3">
-                    <select class="form-select" name="filter_status">
-                        <option value="">Semua Status</option>
-                        <option value="dipinjam" <?= $filter_status === 'dipinjam' ? 'selected' : '' ?>>Dipinjam</option>
-                        <option value="dikembalikan" <?= $filter_status === 'dikembalikan' ? 'selected' : '' ?>>Dikembalikan</option>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">
-                        <i class="bi bi-funnel me-1"></i> Filter
-                    </button>
-                    <?php if ($search || $filter_status): ?>
-                    <a href="peminjaman.php" class="btn btn-outline-secondary ms-1">
+                <select class="form-select" style="width: 180px;" name="filter_status">
+                    <option value="">Semua Status</option>
+                    <option value="dipinjam" <?= $filter_status === 'dipinjam' ? 'selected' : '' ?>>Dipinjam</option>
+                    <option value="dikembalikan" <?= $filter_status === 'dikembalikan' ? 'selected' : '' ?>>Dikembalikan</option>
+                </select>
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-funnel me-1"></i> Filter
+                </button>
+                <?php if ($search || $filter_status): ?>
+                    <a href="peminjaman.php" class="btn btn-outline-secondary">
                         <i class="bi bi-x-lg"></i> Reset
                     </a>
-                    <?php endif; ?>
-                </div>
-                <div class="col-auto ms-md-auto">
-                    <button type="button" class="btn btn-primary" onclick="bukaModalTambah()">
-                        <i class="bi bi-plus-lg me-1"></i> Tambah Peminjaman
-                    </button>
-                </div>
+                <?php endif; ?>
             </form>
+
+            <!-- Kanan: Tombol Tambah -->
+            <button type="button" class="btn btn-primary" onclick="bukaModalTambah()">
+                <i class="bi bi-plus-lg me-1"></i> Tambah Peminjaman
+            </button>
+
         </div>
     </div>
+</div>
 
     <!-- Tabel -->
     <div class="card border-0 shadow-sm">

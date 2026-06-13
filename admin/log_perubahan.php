@@ -143,6 +143,7 @@ require_once '../includes/sidebar.php';
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Kategori</th>
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Stok</th>
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Kondisi</th>
+                            <th class="px-4 py-3 small text-uppercase text-muted fw-semibold aksi-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -184,10 +185,15 @@ require_once '../includes/sidebar.php';
                                     <?= $row['kondisi'] ?>
                                 </span>
                             </td>
+                            <td class="px-4 aksi-col">
+                                <a href="detail_log_perubahan.php?id=<?= $row['id_log'] ?>" class="btn btn-sm btn-outline-info" title="Lihat Detail Perubahan">
+                                    <i class="bi bi-eye"></i> Detail
+                                </a>
+                            </td>
                         </tr>
                         <?php endwhile; else: ?>
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
+                            <td colspan="9" class="text-center text-muted py-4">
                                 <i class="bi bi-clock-history fs-4 d-block mb-2"></i>
                                 <?= $search ? 'Tidak ada log yang cocok.' : 'Belum ada log aktivitas perubahan data.' ?>
                             </td>

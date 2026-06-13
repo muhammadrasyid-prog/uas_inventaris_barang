@@ -33,7 +33,7 @@ if ($filter_kat > 0) {
 $total_rows = (int) mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM barang b WHERE $conditions"))['total'];
 
 // PAGINATION 
-$per_page    = 10;
+$per_page    = 5;
 $total_pages = max(1, (int) ceil($total_rows / $per_page));
 $page        = max(1, (int) ($_GET['page'] ?? 1));
 $page        = min($page, $total_pages);
@@ -93,49 +93,44 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
     ?>
     <?php include_once '../includes/alert_modal.php'; ?>
 
-    <!-- Toolbar: Search + Filter + Tombol Tambah -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body py-3">
-            <form method="GET" class="row g-2 align-items-center">
-                <div class="col-12 col-md-5">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                        <input
-                            type="text"
-                            class="form-control border-start-0"
-                            name="search"
-                            placeholder="Cari nama atau kode barang..."
-                            value="<?= htmlspecialchars($search) ?>">
-                    </div>
+<!-- Toolbar: Search + Filter + Tombol Tambah -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            
+            <!-- Kiri: Search + Filter -->
+            <form method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+                <div class="input-group" style="width: 260px;">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0" name="search"
+                           placeholder="Cari nama atau kode..." value="<?= htmlspecialchars($search) ?>">
                 </div>
-                <div class="col-12 col-md-3">
-                    <select class="form-select" name="kategori">
-                        <option value="">Semua Kategori</option>
-                        <?php foreach ($kategori_list as $k): ?>
-                            <option value="<?= $k['id_kategori'] ?>" <?= $filter_kat == $k['id_kategori'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($k['nama_kategori']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">
-                        <i class="bi bi-funnel me-1"></i> Filter
-                    </button>
-                    <?php if ($search !== '' || $filter_kat > 0): ?>
-                        <a href="barang.php" class="btn btn-outline-secondary ms-1">
-                            <i class="bi bi-x-lg"></i> Reset
-                        </a>
-                    <?php endif; ?>
-                </div>
-                <div class="col-auto ms-md-auto">
-                    <button type="button" class="btn btn-primary" onclick="bukaModalTambah()">
-                        <i class="bi bi-plus-lg me-1"></i> Tambah Barang
-                    </button>
-                </div>
+                <select class="form-select" style="width: 180px;" name="kategori">
+                    <option value="">Semua Kategori</option>
+                    <?php foreach ($kategori_list as $k): ?>
+                        <option value="<?= $k['id_kategori'] ?>" <?= $filter_kat == $k['id_kategori'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($k['nama_kategori']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-funnel me-1"></i> Filter
+                </button>
+                <?php if ($search !== '' || $filter_kat > 0): ?>
+                    <a href="barang.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i> Reset
+                    </a>
+                <?php endif; ?>
             </form>
+
+            <!-- Kanan: Tombol Tambah (selalu di posisi sama) -->
+            <button type="button" class="btn btn-primary" onclick="bukaModalTambah()">
+                <i class="bi bi-plus-lg me-1"></i> Tambah Barang
+            </button>
+
         </div>
     </div>
+</div>
 
     <!-- Tabel -->
     <div class="card border-0 shadow-sm">
