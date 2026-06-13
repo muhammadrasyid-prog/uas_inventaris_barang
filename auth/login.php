@@ -1,13 +1,6 @@
 <?php
 include_once __DIR__ . "/../includes/config.php";
 
-// Log debug sementara
-$log_data = "Time: " . date('Y-m-d H:i:s') . "\n"
-          . "Method: " . $_SERVER['REQUEST_METHOD'] . "\n"
-          . "POST: " . print_r($_POST, true) . "\n"
-          . "SESSION: " . print_r($_SESSION, true) . "\n"
-          . "-------------------------\n";
-file_put_contents(__DIR__ . "/../debug_login.txt", $log_data, FILE_APPEND);
 
 // Kalau sudah login, redirect sesuai role
 if (isLoggedIn()) {
@@ -128,14 +121,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Form -->
             <div class="card-body p-4">
 
-                <!-- Alert error -->
-                <?php if ($error): ?>
-                <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2" role="alert" id="errorAlert">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span><?= $error ?></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                <?php endif; ?>
+                <!-- Alert Modal Data Preparation -->
+                <?php 
+                $modal_data = null;
+                if ($error) {
+                    $modal_data = ['danger', 'bi-exclamation-triangle-fill', $error];
+                } elseif (isset($_GET['logout']) && $_GET['logout'] == 'success') {
+                    $modal_data = ['success', 'bi-check-circle-fill', 'Anda berhasil logout dari sistem.'];
+                }
+                ?>
+                <?php include_once __DIR__ . '/../includes/alert_modal.php'; ?>
 
                 <form id="formLogin" method="POST" action="" novalidate>
 

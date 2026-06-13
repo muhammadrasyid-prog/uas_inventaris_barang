@@ -133,31 +133,21 @@ $result = mysqli_query($conn, $query);
 <!-- Content -->
 <div class="p-4">
 
-    <!-- Alert notifikasi -->
-    <?php if (isset($_GET['status'])): ?>
-        <?php
+    <!-- Alert Modal -->
+    <?php
+    $modal_data = null;
+    if (isset($_GET['status'])) {
         $messages = [
-            'restore' => ['success', 'bi-arrow-counterclockwise', 'Barang berhasil dipulihkan ke tabel aktif.'],
-            'purge'   => ['warning', 'bi-trash-fill',             'Barang berhasil dihapus secara permanen.'],
-            'empty'   => ['danger',  'bi-check-circle-fill',      'Recycle bin berhasil dikosongkan.'],
+            'restore' => ['success', 'bi-check-circle', 'Barang berhasil dipulihkan ke tabel aktif.'],
+            'purge'   => ['warning', 'bi-trash-fill', 'Barang berhasil dihapus secara permanen.'],
+            'empty'   => ['danger',  'bi-check-circle-fill', 'Recycle bin berhasil dikosongkan.'],
         ];
-        $s = $messages[$_GET['status']] ?? null;
-        if ($s): ?>
-        <div class="alert alert-<?= $s[0] ?> alert-dismissible d-flex align-items-center gap-2" role="alert">
-            <i class="bi <?= $s[1] ?>"></i>
-            <span><?= $s[2] ?></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php endif; ?>
-    <?php endif; ?>
-
-    <?php if (isset($error_message)): ?>
-    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2" role="alert">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <span><?= $error_message ?></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
+        $modal_data = $messages[$_GET['status']] ?? null;
+    } elseif (isset($error_message)) {
+        $modal_data = ['danger', 'bi-exclamation-triangle-fill', $error_message];
+    }
+    ?>
+    <?php include_once '../includes/alert_modal.php'; ?>
 
     <!-- Toolbar: Search & Kosongkan -->
     <div class="card border-0 shadow-sm mb-4">
@@ -348,12 +338,7 @@ $result = mysqli_query($conn, $query);
         if (window.innerWidth >= 768) closeSidebar();
     });
 
-    // Auto dismiss alert
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(el => {
-            new bootstrap.Alert(el).close();
-        });
-    }, 3000);
+
 </script>
 </body>
 </html>

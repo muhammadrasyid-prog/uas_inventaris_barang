@@ -139,32 +139,21 @@ require_once '../includes/sidebar.php';
 
 <div class="p-4">
 
-    <!-- Alert Success -->
-    <?php if (isset($_GET['status'])): ?>
-        <?php
+    <!-- Alert Modal -->
+    <?php
+    $modal_data = null;
+    if (isset($_GET['status'])) {
         $messages = [
             'tambah' => ['success', 'bi-check-circle', 'Peminjaman berhasil ditambahkan.'],
             'kembali'=> ['success', 'bi-check-circle', 'Barang berhasil dikembalikan.'],
             'hapus'  => ['warning', 'bi-trash', 'Data peminjaman berhasil dihapus.'],
         ];
-        $s = $messages[$_GET['status']] ?? null;
-        if ($s): ?>
-        <div class="alert alert-<?= $s[0] ?> alert-dismissible d-flex align-items-center gap-2">
-            <i class="bi <?= $s[1] ?>"></i>
-            <span><?= $s[2] ?></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php endif; ?>
-    <?php endif; ?>
-
-    <!-- Alert Error -->
-    <?php if ($error_message): ?>
-    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2">
-        <i class="bi bi-exclamation-triangle"></i>
-        <span><?= htmlspecialchars($error_message) ?></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
+        $modal_data = $messages[$_GET['status']] ?? null;
+    } elseif ($error_message) {
+        $modal_data = ['danger', 'bi-exclamation-triangle-fill', $error_message];
+    }
+    ?>
+    <?php include_once '../includes/alert_modal.php'; ?>
 
     <!-- Toolbar -->
     <div class="card border-0 shadow-sm mb-4">
@@ -446,13 +435,7 @@ require_once '../includes/sidebar.php';
         }
     });
 
-    // Auto dismiss alert
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(el => {
-            const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
-            bsAlert.close();
-        });
-    }, 3000);
+
 </script>
 </body>
 </html>

@@ -41,19 +41,16 @@ require_once '../includes/sidebar.php';
         </div>
         <div class="card-body">
             
-            <?php if (isset($_GET['status']) && $_GET['status'] === 'sukses'): ?>
-                <div class="alert alert-success alert-dismissible">
-                    <i class="bi bi-check-circle me-2"></i> Pengaturan berhasil disimpan!
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-            
-            <?php if (isset($error)): ?>
-                <div class="alert alert-danger alert-dismissible">
-                    <i class="bi bi-exclamation-triangle me-2"></i> <?= $error ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
+            <!-- Alert Modal -->
+            <?php
+            $modal_data = null;
+            if (isset($_GET['status']) && $_GET['status'] === 'sukses') {
+                $modal_data = ['success', 'bi-check-circle', 'Pengaturan berhasil disimpan!'];
+            } elseif (isset($error)) {
+                $modal_data = ['danger', 'bi-exclamation-triangle', $error];
+            }
+            ?>
+            <?php include_once '../includes/alert_modal.php'; ?>
 
             <form method="POST" class="row g-4">
                 <div class="col-md-6">

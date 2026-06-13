@@ -76,14 +76,14 @@ require_once '../includes/sidebar.php';
 <!-- Content -->
 <div class="p-4">
 
-    <!-- Alert notifikasi -->
-    <?php if (isset($_GET['status']) && $_GET['status'] === 'reset'): ?>
-        <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2" role="alert">
-            <i class="bi bi-check-circle"></i>
-            <span>Seluruh data log perubahan berhasil dihapus.</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
+    <!-- Alert Modal -->
+    <?php
+    $modal_data = null;
+    if (isset($_GET['status']) && $_GET['status'] === 'reset') {
+        $modal_data = ['success', 'bi-check-circle', 'Seluruh data log perubahan berhasil dihapus.'];
+    }
+    ?>
+    <?php include_once '../includes/alert_modal.php'; ?>
 
     <!-- Toolbar: Search & Reset -->
     <div class="card border-0 shadow-sm mb-4">
@@ -244,11 +244,7 @@ require_once '../includes/sidebar.php';
         if (window.innerWidth >= 768) closeSidebar();
     });
 
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(el => {
-            new bootstrap.Alert(el).close();
-        });
-    }, 3000);
+
 </script>
 </body>
 </html>

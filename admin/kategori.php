@@ -67,23 +67,19 @@ require_once '../includes/sidebar.php';
 <!-- Content -->
 <div class="p-4">
 
-    <!-- Alert notifikasi -->
-    <?php if (isset($_GET['status'])): ?>
-        <?php
+    <!-- Alert Modal -->
+    <?php
+    $modal_data = null;
+    if (isset($_GET['status'])) {
         $messages = [
             'tambah' => ['success', 'bi-check-circle', 'Kategori berhasil ditambahkan.'],
             'edit'   => ['success', 'bi-check-circle', 'Kategori berhasil diperbarui.'],
             'hapus'  => ['warning', 'bi-trash',        'Kategori berhasil dihapus.'],
         ];
-        $s = $messages[$_GET['status']] ?? null;
-        if ($s): ?>
-        <div class="alert alert-<?= $s[0] ?> alert-dismissible d-flex align-items-center gap-2" role="alert">
-            <i class="bi <?= $s[1] ?>"></i>
-            <span><?= $s[2] ?></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php endif; ?>
-    <?php endif; ?>
+        $modal_data = $messages[$_GET['status']] ?? null;
+    }
+    ?>
+    <?php include_once '../includes/alert_modal.php'; ?>
 
     <div class="row g-4">
 
@@ -284,12 +280,7 @@ require_once '../includes/sidebar.php';
         }
     });
 
-    // Auto dismiss alert setelah 3 detik
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(el => {
-            new bootstrap.Alert(el).close();
-        });
-    }, 3000);
+
 </script>
 </body>
 </html>

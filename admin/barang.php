@@ -102,24 +102,20 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
 <!-- Content -->
 <div class="p-4">
 
-    <!-- Alert -->
-    <?php if (isset($_GET['status'])): ?>
-        <?php
+    <!-- Alert Modal -->
+    <?php
+    $modal_data = null;
+    if (isset($_GET['status'])) {
         $messages = [
             'tambah' => ['success', 'bi-check-circle', 'Barang berhasil ditambahkan.'],
             'edit'   => ['success', 'bi-check-circle', 'Barang berhasil diperbarui.'],
             'hapus'  => ['warning', 'bi-trash',        'Barang berhasil dihapus.'],
             'error'  => ['danger',  'bi-exclamation-triangle', $_GET['msg'] ?? 'Terjadi kesalahan.'],
         ];
-        $s = $messages[$_GET['status']] ?? null;
-        if ($s): ?>
-            <div class="alert alert-<?= $s[0] ?> alert-dismissible d-flex align-items-center gap-2">
-                <i class="bi <?= $s[1] ?>"></i>
-                <span><?= htmlspecialchars($s[2]) ?></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-    <?php endif; ?>
+        $modal_data = $messages[$_GET['status']] ?? null;
+    }
+    ?>
+    <?php include_once '../includes/alert_modal.php'; ?>
 
     <!-- Toolbar: Search + Filter + Tombol Tambah -->
     <div class="card border-0 shadow-sm mb-4">
@@ -595,12 +591,7 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
         if (!valid) e.preventDefault();
     });
 
-    // Auto dismiss alert
-    setTimeout(() => {
-        document.querySelectorAll('.alert').forEach(el => {
-            new bootstrap.Alert(el).close();
-        });
-    }, 3000);
+
 </script>
 </body>
 </html>
