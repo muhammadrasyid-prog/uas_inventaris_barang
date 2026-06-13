@@ -10,12 +10,11 @@ $current_page = basename(__FILE__);
 
 //proses reset log
 if (isset($_POST['reset_log'])) {
-    // Coba dengan DELETE dulu (lebih aman untuk foreign key)
     $delete = mysqli_query($conn, "DELETE FROM log_perubahan");
     
     if (!$delete) {
-        // Kalau gagal, tampilkan errornya
-        die("Error menghapus log: " . mysqli_error($conn));
+        header("Location: log_perubahan.php?status=error&msg=" . urlencode("Gagal menghapus log: " . mysqli_error($conn)));
+        exit();
     }
     
     // Reset auto increment
@@ -79,8 +78,12 @@ require_once '../includes/sidebar.php';
     <!-- Alert Modal -->
     <?php
     $modal_data = null;
-    if (isset($_GET['status']) && $_GET['status'] === 'reset') {
-        $modal_data = ['success', 'bi-check-circle', 'Seluruh data log perubahan berhasil dihapus.'];
+    if (isset($_GET['status'])) {
+        if ($_GET['status'] === 'reset') {
+            $modal_data = ['success', 'bi-check-circle', 'Seluruh data log perubahan berhasil dihapus.'];
+        } elseif ($_GET['status'] === 'error') {
+            $modal_data = ['danger', 'bi-exclamation-triangle-fill', htmlspecialchars($_GET['msg'] ?? 'Terjadi kesalahan saat menghapus log.')];
+        }
     }
     ?>
     <?php include_once '../includes/alert_modal.php'; ?>
@@ -106,18 +109,20 @@ require_once '../includes/sidebar.php';
                         </a>
                     <?php endif; ?>
                 </div>
-                <?php if ($total_rows > 0): ?>
-                <div class="col-auto ms-md-auto">
-                    <form method="POST" onsubmit="return confirm('Kosongkan seluruh log riwayat perubahan? Tindakan ini tidak bisa dibatalkan.')">
-                        <button type="submit" name="reset_log" class="btn btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i> Bersihkan Log (<?= $total_rows ?> data)
-                        </button>
-                    </form>
-                </div>
-                <?php endif; ?>
             </form>
         </div>
     </div>
+
+    <!-- Tombol Bersihkan Log (POST form terpisah, di luar form GET) -->
+    <?php if ($total_rows > 0): ?>
+    <div class="d-flex justify-content-end mb-3">
+        <form method="POST" onsubmit="return confirm('Kosongkan seluruh log riwayat perubahan? Tindakan ini tidak bisa dibatalkan.')">
+            <button type="submit" name="reset_log" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-1"></i> Bersihkan Log (<?= $total_rows ?> data)
+            </button>
+        </form>
+    </div>
+    <?php endif; ?>
 
     <!-- Tabel Data -->
     <div class="card border-0 shadow-sm">
@@ -223,28 +228,4 @@ require_once '../includes/sidebar.php';
     </div>
 </div>
 
-<!-- Footer -->
-<footer class="mt-auto p-4 text-center border-top">
-    <small class="text-muted">© 2026 Sistem Inventaris Barang</small>
-</footer>
-
-</div><!-- end #main-content -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('show');
-        document.getElementById('sidebar-backdrop').classList.toggle('show');
-    }
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('show');
-        document.getElementById('sidebar-backdrop').classList.remove('show');
-    }
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) closeSidebar();
-    });
-
-
-</script>
-</body>
-</html>
+<?php require_once '../includes/footer.php'; ?>

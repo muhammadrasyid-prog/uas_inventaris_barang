@@ -213,7 +213,7 @@ require_once '../includes/sidebar.php';
                             <th class="px-3 py-3 small text-uppercase text-muted fw-semibold">Tenggat</th>
                             <th class="px-3 py-3 small text-uppercase text-muted fw-semibold">Tgl Kembali</th>
                             <th class="px-3 py-3 small text-uppercase text-muted fw-semibold">Status</th>
-                            <th class="px-3 py-3 small text-uppercase text-muted fw-semibold text-end">Aksi</th>
+                            <th class="px-3 py-3 small text-uppercase text-muted fw-semibold aksi-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -244,7 +244,7 @@ require_once '../includes/sidebar.php';
                                     <i class="bi <?= $badge[1] ?> me-1"></i><?= $row['keterangan'] ?>
                                 </span>
                             </td>
-                            <td class="px-3 text-end">
+                            <td class="px-3 aksi-col">
                                 <?php if ($row['status'] === 'dipinjam'): ?>
                                 <button class="btn btn-sm btn-outline-success me-1"
                                         onclick="bukaModalKembali(<?= $row['id_peminjaman'] ?>, '<?= htmlspecialchars($row['nama_barang'], ENT_QUOTES) ?>')"
@@ -390,26 +390,7 @@ require_once '../includes/sidebar.php';
     </div>
 </div>
 
-<!-- Footer -->
-<footer class="mt-auto p-4 text-center border-top">
-    <small class="text-muted">© 2026 Sistem Inventaris Barang</small>
-</footer>
-
-</div><!-- end #main-content -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('show');
-        document.getElementById('sidebar-backdrop').classList.toggle('show');
-    }
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('show');
-        document.getElementById('sidebar-backdrop').classList.remove('show');
-    }
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) closeSidebar();
-    });
 
     function bukaModalTambah() {
         document.getElementById('formTambah').reset();
@@ -437,5 +418,4 @@ require_once '../includes/sidebar.php';
 
 
 </script>
-</body>
-</html>
+<?php require_once '../includes/footer.php'; ?>

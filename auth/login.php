@@ -5,9 +5,9 @@ include_once __DIR__ . "/../includes/config.php";
 // Kalau sudah login, redirect sesuai role
 if (isLoggedIn()) {
     if ($_SESSION['role'] === 'admin') {
-        header("Location: ../admin/dashboard.php");
+        header("Location: ../admin/dashboard.php?login=success");
     } else {
-        header("Location: ../peminjam/dashboard.php");
+        header("Location: ../peminjam/dashboard.php?login=success");
     }
     exit();
 }
@@ -31,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role']         = $user['role'];
 
             if ($user['role'] === 'admin') {
-                header('Location: ../admin/dashboard.php');
+                header('Location: ../admin/dashboard.php?login=success');
             } else {
-                header('Location: ../peminjam/dashboard.php');
+                header('Location: ../peminjam/dashboard.php?login=success');
             }
             exit();
         } else {

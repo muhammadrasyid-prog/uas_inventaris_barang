@@ -65,6 +65,15 @@ $result_pinjam = mysqli_query($conn, $query_pinjam);
 <!-- Content -->
 <div class="p-4">
 
+    <!-- Alert Modal Login Success -->
+    <?php
+    $modal_data = null;
+    if (isset($_GET['login']) && $_GET['login'] === 'success') {
+        $modal_data = ['success', 'bi-person-check-fill', 'Selamat datang kembali, ' . htmlspecialchars($_SESSION['nama_lengkap']) . '! Anda berhasil login sebagai Administrator.'];
+    }
+    ?>
+    <?php include_once '../includes/alert_modal.php'; ?>
+
     <!-- Stat Cards -->
     <div class="row g-3 mb-4">
 
@@ -183,31 +192,4 @@ $result_pinjam = mysqli_query($conn, $query_pinjam);
 
 </div>
 
-<!-- Footer -->
-<footer class="mt-auto p-4 text-center border-top">
-    <small class="text-muted">© 2026 Sistem Inventaris Barang</small>
-</footer>
-
-</div><!-- end #main-content -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        sidebar.classList.toggle('show');
-        backdrop.classList.toggle('show');
-    }
-
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('show');
-        document.getElementById('sidebar-backdrop').classList.remove('show');
-    }
-
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) closeSidebar();
-    });
-</script>
-</body>
-
-</html>
+<?php require_once '../includes/footer.php'; ?>

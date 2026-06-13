@@ -5,10 +5,7 @@ requireAdmin();
 // PROSES HAPUS (sebelum ada output apapun, agar header() redirect aman)
 if (isset($_GET['hapus'])) {
     $id = (int) $_GET['hapus'];
-    $stmt = mysqli_prepare($conn, "DELETE FROM barang WHERE id_barang = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
+    mysqli_query($conn, "DELETE FROM barang WHERE id_barang = $id");
     header("Location: barang.php?status=hapus");
     exit();
 }
@@ -23,30 +20,17 @@ $search     = trim($_GET['search'] ?? '');
 $filter_kat = (int) ($_GET['kategori'] ?? 0);
 
 $conditions = "1=1";
-$params     = [];
-$types      = "";
 
 if ($search !== '') {
-    $conditions .= " AND (b.nama_barang LIKE ? OR b.kode_barang LIKE ?)";
-    $like = "%{$search}%";
-    $params[] = $like;
-    $params[] = $like;
-    $types   .= "ss";
+    $search_esc  = mysqli_real_escape_string($conn, $search);
+    $conditions .= " AND (b.nama_barang LIKE '%$search_esc%' OR b.kode_barang LIKE '%$search_esc%')";
 }
 if ($filter_kat > 0) {
-    $conditions .= " AND b.id_kategori = ?";
-    $params[] = $filter_kat;
-    $types   .= "i";
+    $conditions .= " AND b.id_kategori = $filter_kat";
 }
 
 // TOTAL ROWS (untuk pagination)
-$stmt = mysqli_prepare($conn, "SELECT COUNT(*) AS total FROM barang b WHERE $conditions");
-if ($params) {
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-}
-mysqli_stmt_execute($stmt);
-$total_rows = (int) mysqli_fetch_assoc(mysqli_stmt_get_result($stmt))['total'];
-mysqli_stmt_close($stmt);
+$total_rows = (int) mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM barang b WHERE $conditions"))['total'];
 
 // PAGINATION 
 $per_page    = 10;
@@ -56,7 +40,7 @@ $page        = min($page, $total_pages);
 $offset      = ($page - 1) * $per_page;
 
 // AMBIL DATA BARANG (JOIN + stok dinamis + status stok dalam 1 query)
-$data_query = "
+$result = mysqli_query($conn, "
     SELECT b.*,
            k.nama_kategori,
            (b.stok - COUNT(CASE WHEN p.status = 'dipinjam' THEN 1 END)) AS stok_tersedia,
@@ -67,16 +51,8 @@ $data_query = "
     WHERE $conditions
     GROUP BY b.id_barang
     ORDER BY b.id_barang ASC
-    LIMIT ? OFFSET ?
-";
-$stmt = mysqli_prepare($conn, $data_query);
-$bind_params = $params;
-$bind_types  = $types . "ii";
-$bind_params[] = $per_page;
-$bind_params[] = $offset;
-mysqli_stmt_bind_param($stmt, $bind_types, ...$bind_params);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+    LIMIT $per_page OFFSET $offset
+");
 
 // ===== AMBIL SEMUA KATEGORI untuk dropdown (sekali saja, dipakai ulang) =====
 $kategori_result = mysqli_query($conn, "SELECT * FROM kategori ORDER BY nama_kategori ASC");
@@ -180,7 +156,7 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
                             <th class="px-3 py-3 small text-uppercase text-muted fw-semibold">Stok</th>
                             <th class="px-3 py-3 small text-uppercase text-muted fw-semibold">Tersedia</th>
                             <th class="px-3 py-3 small text-uppercase text-muted fw-semibold">Kondisi</th>
-                            <th class="px-3 py-3 small text-uppercase text-muted fw-semibold text-end">Aksi</th>
+                            <th class="px-3 py-3 small text-uppercase text-muted fw-semibold aksi-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -239,7 +215,7 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
                                             <?= htmlspecialchars($row['kondisi']) ?>
                                         </span>
                                     </td>
-                                    <td class="px-3 text-end">
+                                    <td class="px-3 aksi-col">
                                         <a href="detail_barang.php?id=<?= $row['id_barang'] ?>" class="btn btn-sm btn-outline-secondary me-1">
                                             <i class="bi bi-eye"></i>
                                         </a>
@@ -322,7 +298,7 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Kode Barang <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="kode_barang" id="tambahKode" placeholder="contoh: ELK-001">
+                            <input type="text" class="form-control bg-light" name="kode_barang" id="tambahKode" placeholder="Pilih kategori untuk generate otomatis..." readonly>
                             <div class="invalid-feedback" id="errTambahKode"></div>
                         </div>
                         <div class="col-md-6">
@@ -549,7 +525,7 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
     document.getElementById('formTambah').addEventListener('submit', function(e) {
         let valid = true;
         const fields = [
-            { id: 'tambahKode', errId: 'errTambahKode', msg: 'Kode barang wajib diisi.' },
+            { id: 'tambahKode', errId: 'errTambahKode', msg: 'Kode barang gagal di-generate.' },
             { id: 'tambahNama', errId: 'errTambahNama', msg: 'Nama barang wajib diisi.' },
             { id: 'tambahKategori', errId: 'errTambahKategori', msg: 'Pilih kategori terlebih dahulu.' },
             { id: 'tambahStok', errId: 'errTambahStok', msg: 'Stok tidak boleh kosong.' },
@@ -591,8 +567,26 @@ $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
         if (!valid) e.preventDefault();
     });
 
+    // Auto-generate Kode Barang berdasarkan Kategori
+    document.getElementById('tambahKategori').addEventListener('change', function() {
+        const idKat = this.value;
+        const inputKode = document.getElementById('tambahKode');
+        
+        if (idKat) {
+            inputKode.value = 'Mencari kode...';
+            fetch('get_kode_barang.php?id_kategori=' + idKat)
+                .then(response => response.json())
+                .then(data => {
+                    inputKode.value = data.kode;
+                })
+                .catch(error => {
+                    console.error('Error fetching kode_barang:', error);
+                    inputKode.value = '';
+                });
+        } else {
+            inputKode.value = '';
+        }
+    });
 
 </script>
-</body>
-</html>
 <?php require_once '../includes/footer.php'; ?>

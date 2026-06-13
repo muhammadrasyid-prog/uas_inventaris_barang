@@ -39,24 +39,23 @@ if (!empty($_FILES['foto']['name'])) {
     $foto = $upload['filename'];
 }
 
-// Insert dengan prepared statement (anti SQL injection)
-$stmt = mysqli_prepare(
-    $conn,
-    "INSERT INTO barang (kode_barang, nama_barang, id_kategori, stok, kondisi, foto)
-     VALUES (?, ?, ?, ?, ?, ?)"
-);
-mysqli_stmt_bind_param($stmt, "ssiiss", $kode, $nama, $id_kat, $stok, $kondisi, $foto);
+// Insert query biasa
+$kode_esc    = mysqli_real_escape_string($conn, $kode);
+$nama_esc    = mysqli_real_escape_string($conn, $nama);
+$kondisi_esc = mysqli_real_escape_string($conn, $kondisi);
+$foto_esc    = $foto ? "'" . mysqli_real_escape_string($conn, $foto) . "'" : "NULL";
 
-if (mysqli_stmt_execute($stmt)) {
+$query = "INSERT INTO barang (kode_barang, nama_barang, id_kategori, stok, kondisi, foto)
+          VALUES ('$kode_esc', '$nama_esc', $id_kat, $stok, '$kondisi_esc', $foto_esc)";
+
+if (mysqli_query($conn, $query)) {
     $new_id = mysqli_insert_id($conn);
-    mysqli_stmt_close($stmt);
     header("Location: barang.php?status=tambah&id_barang=" . $new_id);
 } else {
     // Gagal insert (kemungkinan besar kode_barang duplikat -> UNIQUE constraint)
     if ($foto) {
         deleteFile($foto); // jangan tinggalkan file yatim di folder upload
     }
-    mysqli_stmt_close($stmt);
     header("Location: barang.php?status=error&msg=" . urlencode("Kode barang sudah digunakan."));
 }
 exit();

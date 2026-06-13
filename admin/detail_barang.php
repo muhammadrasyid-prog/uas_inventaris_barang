@@ -4,7 +4,7 @@ requireAdmin();
 
 $id = (int) ($_GET['id'] ?? 0);
 
-$stmt = mysqli_prepare($conn, "
+$barang = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT b.*,
            k.nama_kategori,
            (b.stok - COUNT(CASE WHEN p.status = 'dipinjam' THEN 1 END)) AS stok_tersedia,
@@ -12,31 +12,24 @@ $stmt = mysqli_prepare($conn, "
     FROM barang b
     LEFT JOIN kategori k ON b.id_kategori = k.id_kategori
     LEFT JOIN peminjaman p ON b.id_barang = p.id_barang
-    WHERE b.id_barang = ?
+    WHERE b.id_barang = $id
     GROUP BY b.id_barang
-");
-mysqli_stmt_bind_param($stmt, "i", $id);
-mysqli_stmt_execute($stmt);
-$barang = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
-mysqli_stmt_close($stmt);
+"));
 
 if (!$barang) {
     header("Location: barang.php?status=error&msg=" . urlencode("Barang tidak ditemukan."));
     exit();
 }
 
-// Riwayat peminjaman barang ini (untuk konteks tambahan di halaman detail)
-$stmt2 = mysqli_prepare($conn, "
+// Riwayat peminjaman barang ini
+$riwayat = mysqli_query($conn, "
     SELECT p.*, u.nama_lengkap
     FROM peminjaman p
     LEFT JOIN users u ON p.id_user = u.id_user
-    WHERE p.id_barang = ?
+    WHERE p.id_barang = $id
     ORDER BY p.tanggal_pinjam DESC
     LIMIT 10
 ");
-mysqli_stmt_bind_param($stmt2, "i", $id);
-mysqli_stmt_execute($stmt2);
-$riwayat = mysqli_stmt_get_result($stmt2);
 
 $page_title   = "Detail Barang — " . htmlspecialchars($barang['nama_barang']);
 $current_page = "barang.php"; // tetap highlight menu "Data Barang" di sidebar
@@ -194,22 +187,4 @@ $kondisi_color = match ($barang['kondisi']) {
     </div>
 </div>
 
-</div><!-- end #main-content -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('show');
-        document.getElementById('sidebar-backdrop').classList.toggle('show');
-    }
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('show');
-        document.getElementById('sidebar-backdrop').classList.remove('show');
-    }
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) closeSidebar();
-    });
-</script>
-</body>
-</html>
 <?php require_once '../includes/footer.php'; ?>

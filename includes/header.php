@@ -184,6 +184,55 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 display: block;
             }
         }
+
+        /* ===== GLOBAL TABLE COMPACT STYLES ===== */
+        .table {
+            font-size: 0.8125rem; /* 13px */
+        }
+
+        .table thead th {
+            font-size: 0.6875rem; /* 11px */
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #6c757d;
+            white-space: nowrap;
+            padding: 0.6rem 1rem;
+        }
+
+        .table tbody td {
+            padding: 0.55rem 1rem;
+            vertical-align: middle;
+            font-size: 0.8125rem;
+        }
+
+        /* Kolom aksi: paksa tombol sejajar horizontal & tidak wrap */
+        .table .aksi-col {
+            white-space: nowrap;
+            width: 1%;
+        }
+
+        .table .aksi-col .btn {
+            padding: 0.2rem 0.45rem;
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .table .aksi-col form {
+            display: inline;
+        }
+
+        /* Badge di dalam tabel */
+        .table .badge {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* Pagination kompak */
+        .pagination-sm .page-link {
+            font-size: 0.78rem;
+            padding: 0.25rem 0.55rem;
+        }
     </style>
 </head>
 <body>

@@ -185,7 +185,7 @@ require_once '../includes/sidebar.php';
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Nama Lengkap</th>
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Username</th>
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Role</th>
-                            <th class="px-4 py-3 small text-uppercase text-muted fw-semibold text-end">Aksi</th>
+                            <th class="px-4 py-3 small text-uppercase text-muted fw-semibold aksi-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -203,7 +203,7 @@ require_once '../includes/sidebar.php';
                                     <?= ucfirst($row['role']) ?>
                                 </span>
                             </td>
-                            <td class="px-4 text-end">
+                            <td class="px-4 aksi-col">
                                 <!-- Tombol Edit -->
                                 <button
                                     class="btn btn-sm btn-outline-primary me-1"
@@ -369,27 +369,7 @@ require_once '../includes/sidebar.php';
     </div>
 </div>
 
-<!-- Footer -->
-<footer class="mt-auto p-4 text-center border-top">
-    <small class="text-muted">© 2026 Sistem Inventaris Barang</small>
-</footer>
-
-</div><!-- end #main-content -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Toggle sidebar mobile
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('show');
-        document.getElementById('sidebar-backdrop').classList.toggle('show');
-    }
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('show');
-        document.getElementById('sidebar-backdrop').classList.remove('show');
-    }
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) closeSidebar();
-    });
 
     // Buka modal tambah
     function bukaModalTambah() {
@@ -468,5 +448,4 @@ require_once '../includes/sidebar.php';
 
 
 </script>
-</body>
-</html>
+<?php require_once '../includes/footer.php'; ?>

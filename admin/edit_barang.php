@@ -31,11 +31,7 @@ if ($stok < 0) {
 }
 
 // Pastikan barang yang diedit memang ada
-$check = mysqli_prepare($conn, "SELECT foto FROM barang WHERE id_barang = ?");
-mysqli_stmt_bind_param($check, "i", $id);
-mysqli_stmt_execute($check);
-$existing = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
-mysqli_stmt_close($check);
+$existing = mysqli_fetch_assoc(mysqli_query($conn, "SELECT foto FROM barang WHERE id_barang = $id"));
 
 if (!$existing) {
     header("Location: barang.php?status=error&msg=" . urlencode("Barang tidak ditemukan."));
@@ -58,20 +54,20 @@ if (!empty($_FILES['foto']['name'])) {
 
 $foto_value = ($foto !== '') ? $foto : null;
 
-// Update dengan prepared statement
-$stmt = mysqli_prepare(
-    $conn,
-    "UPDATE barang
-     SET kode_barang = ?, nama_barang = ?, id_kategori = ?, stok = ?, kondisi = ?, foto = ?
-     WHERE id_barang = ?"
-);
-mysqli_stmt_bind_param($stmt, "ssiissi", $kode, $nama, $id_kat, $stok, $kondisi, $foto_value, $id);
+// Update query biasa
+$kode_esc    = mysqli_real_escape_string($conn, $kode);
+$nama_esc    = mysqli_real_escape_string($conn, $nama);
+$kondisi_esc = mysqli_real_escape_string($conn, $kondisi);
+$foto_esc    = $foto_value ? "'" . mysqli_real_escape_string($conn, $foto_value) . "'" : "NULL";
 
-if (mysqli_stmt_execute($stmt)) {
-    mysqli_stmt_close($stmt);
+$query = "UPDATE barang
+          SET kode_barang = '$kode_esc', nama_barang = '$nama_esc', id_kategori = $id_kat,
+              stok = $stok, kondisi = '$kondisi_esc', foto = $foto_esc
+          WHERE id_barang = $id";
+
+if (mysqli_query($conn, $query)) {
     header("Location: barang.php?status=edit&id_barang=" . $id);
 } else {
-    mysqli_stmt_close($stmt);
     header("Location: barang.php?status=error&msg=" . urlencode("Kode barang sudah digunakan oleh barang lain."));
 }
 exit();

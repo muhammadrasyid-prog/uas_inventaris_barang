@@ -206,7 +206,7 @@ $result = mysqli_query($conn, $query);
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Kategori</th>
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Stok</th>
                             <th class="px-4 py-3 small text-uppercase text-muted fw-semibold">Kondisi</th>
-                            <th class="px-4 py-3 small text-uppercase text-muted fw-semibold text-end">Aksi</th>
+                            <th class="px-4 py-3 small text-uppercase text-muted fw-semibold aksi-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -249,7 +249,7 @@ $result = mysqli_query($conn, $query);
                                     <?= $row['kondisi'] ?>
                                 </span>
                             </td>
-                            <td class="px-4 text-end">
+                            <td class="px-4 aksi-col">
                                 <!-- Restore Button -->
                                 <a
                                     href="recycle_bin.php?restore=<?= $row['id_hapus'] ?>"
@@ -257,7 +257,7 @@ $result = mysqli_query($conn, $query);
                                     title="Pulihkan Barang"
                                     onclick="return confirm('Pulihkan barang ini ke daftar aktif?')"
                                 >
-                                    <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                    <i class="bi bi-arrow-counterclockwise"></i>
                                 </a>
                                 <!-- Purge Button -->
                                 <a
@@ -266,7 +266,7 @@ $result = mysqli_query($conn, $query);
                                     title="Hapus Permanen"
                                     onclick="return confirm('Hapus barang ini secara permanen dari database dan disk? Tindakan ini tidak bisa dibatalkan.')"
                                 >
-                                    <i class="bi bi-trash-fill"></i> Hapus Permanen
+                                    <i class="bi bi-trash-fill"></i>
                                 </a>
                             </td>
                         </tr>
@@ -316,29 +316,4 @@ $result = mysqli_query($conn, $query);
     </div>
 </div>
 
-<!-- Footer -->
-<footer class="mt-auto p-4 text-center border-top">
-    <small class="text-muted">© 2026 Sistem Inventaris Barang</small>
-</footer>
-
-</div><!-- end #main-content -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Toggle sidebar mobile
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('show');
-        document.getElementById('sidebar-backdrop').classList.toggle('show');
-    }
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('show');
-        document.getElementById('sidebar-backdrop').classList.remove('show');
-    }
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) closeSidebar();
-    });
-
-
-</script>
-</body>
-</html>
+<?php require_once '../includes/footer.php'; ?>
