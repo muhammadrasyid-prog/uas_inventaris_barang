@@ -4,9 +4,10 @@ requireAdmin();
 
 // PROSES TAMBAH
 if (isset($_POST['tambah'])) {
-    $id_barang  = (int) $_POST['id_barang'];
-    $id_user    = (int) $_POST['id_user'];
-    $tgl_pinjam = mysqli_real_escape_string($conn, $_POST['tanggal_pinjam']);
+    $id_barang   = (int) $_POST['id_barang'];
+    $id_user     = (int) $_POST['id_user'];
+    $jumlah_pinjam = max(1, (int) $_POST['jumlah']);
+    $tgl_pinjam  = mysqli_real_escape_string($conn, $_POST['tanggal_pinjam']);
     $tgl_rencana = mysqli_real_escape_string($conn, $_POST['tanggal_kembali_rencana']);
 
     // Cek stok tersedia
@@ -22,26 +23,85 @@ if (isset($_POST['tambah'])) {
         exit();
     }
 
-    $query = "INSERT INTO peminjaman (id_barang, id_user, tanggal_pinjam, tanggal_kembali_rencana)
-              VALUES ($id_barang, $id_user, '$tgl_pinjam', '$tgl_rencana')";
+    if ($jumlah_pinjam > $cek['stok_tersedia']) {
+        $_SESSION['error'] = "Jumlah pinjam melebihi stok tersedia (" . $cek['stok_tersedia'] . " unit).";
+        header("Location: peminjaman.php");
+        exit();
+    }
+
+    // Simpan peminjaman dengan jumlah
+    $query = "INSERT INTO peminjaman (id_barang, id_user, jumlah, tanggal_pinjam, tanggal_kembali_rencana)
+              VALUES ($id_barang, $id_user, $jumlah_pinjam, '$tgl_pinjam', '$tgl_rencana')";
     
     mysqli_query($conn, $query);
+    // Stok tersedia dihitung otomatis oleh VIEW — tidak perlu UPDATE barang.stok
+
     header("Location: peminjaman.php?status=tambah");
     exit();
 }
 
 // PROSES KEMBALIKAN
 if (isset($_POST['kembalikan'])) {
-    $id           = (int) $_POST['id_peminjaman'];
-    $tgl_aktual   = mysqli_real_escape_string($conn, $_POST['tanggal_kembali_aktual']);
-    
-    $query = "UPDATE peminjaman 
-              SET status = 'dikembalikan', tanggal_kembali_aktual = '$tgl_aktual' 
-              WHERE id_peminjaman = $id";
-    
-    mysqli_query($conn, $query);
-    header("Location: peminjaman.php?status=kembali");
-    exit();
+    $id            = (int) $_POST['id_peminjaman'];
+    $jml_baik      = max(0, (int) $_POST['jumlah_baik']);
+    $jml_rusak     = max(0, (int) $_POST['jumlah_rusak']);
+    $jml_hilang    = max(0, (int) $_POST['jumlah_hilang']);
+    $catatan       = mysqli_real_escape_string($conn, trim($_POST['catatan_kembali'] ?? ''));
+
+    // Ambil data peminjaman untuk validasi
+    $res_pem = mysqli_query($conn, "SELECT id_barang, jumlah FROM peminjaman WHERE id_peminjaman = $id AND status = 'dipinjam'");
+
+    if (mysqli_num_rows($res_pem) == 1) {
+        $pem             = mysqli_fetch_assoc($res_pem);
+        $id_barang       = (int) $pem['id_barang'];
+        $jumlah_dipinjam = (int) $pem['jumlah'];
+
+        // Validasi: total harus sama persis dengan jumlah dipinjam
+        $total = $jml_baik + $jml_rusak + $jml_hilang;
+        if ($total !== $jumlah_dipinjam) {
+            $_SESSION['error'] = "Total kondisi ($total unit) harus sama dengan jumlah dipinjam ($jumlah_dipinjam unit).";
+            header("Location: peminjaman.php");
+            exit();
+        }
+
+        // Validasi: catatan wajib jika ada rusak atau hilang
+        if (($jml_rusak > 0 || $jml_hilang > 0) && $catatan === '') {
+            $_SESSION['error'] = "Catatan wajib diisi jika ada barang rusak atau hilang.";
+            header("Location: peminjaman.php");
+            exit();
+        }
+
+        // UPDATE tabel peminjaman
+        $query_update = "UPDATE peminjaman SET
+                            status               = 'dikembalikan',
+                            tanggal_kembali_aktual = NOW(),
+                            jumlah_baik          = $jml_baik,
+                            jumlah_rusak         = $jml_rusak,
+                            jumlah_hilang        = $jml_hilang,
+                            catatan_kembali      = '$catatan'
+                         WHERE id_peminjaman = $id";
+
+        if (mysqli_query($conn, $query_update)) {
+            // VIEW mengeluarkan SELURUH jumlah pinjaman dari hitungan saat status = dikembalikan.
+            // Untuk memastikan rusak & hilang TIDAK kembali ke stok:
+            // kurangi barang.stok sebesar (rusak + hilang) secara permanen.
+            $stok_hilang = $jml_rusak + $jml_hilang;
+            if ($stok_hilang > 0) {
+                mysqli_query($conn, "UPDATE barang SET stok = stok - $stok_hilang WHERE id_barang = $id_barang");
+            }
+
+            header("Location: peminjaman.php?status=kembali");
+            exit();
+        } else {
+            $_SESSION['error'] = "Gagal memproses pengembalian: " . mysqli_error($conn);
+            header("Location: peminjaman.php");
+            exit();
+        }
+    } else {
+        $_SESSION['error'] = "Data peminjaman tidak ditemukan atau sudah dikembalikan.";
+        header("Location: peminjaman.php");
+        exit();
+    }
 }
 
 // PROSES HAPUS
@@ -252,7 +312,7 @@ require_once '../includes/sidebar.php';
                                     <i class="bi bi-printer"></i>
                                 </a>
                                 <button class="btn btn-sm btn-outline-success me-1"
-                                        onclick="bukaModalKembali(<?= $row['id_peminjaman'] ?>, '<?= htmlspecialchars($row['nama_barang'], ENT_QUOTES) ?>')"
+                                        onclick="bukaModalKembali(<?= $row['id_peminjaman'] ?>, '<?= htmlspecialchars($row['nama_barang'], ENT_QUOTES) ?>', <?= $row['jumlah'] ?? 1 ?>)"
                                         title="Kembalikan">
                                     <i class="bi bi-arrow-return-left"></i>
                                 </button>
@@ -343,6 +403,11 @@ require_once '../includes/sidebar.php';
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-semibold small">Jumlah Pinjam <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="jumlah" id="tambahJumlah" min="1" value="1" required>
+                        <div class="form-text" id="tambahJumlahInfo">Stok tersedia akan ditampilkan saat barang dipilih.</div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-semibold small">Tanggal Pinjam <span class="text-danger">*</span></label>
                         <input type="date" class="form-control" name="tanggal_pinjam" id="tambahTglPinjam" value="<?= date('Y-m-d') ?>" required>
                     </div>
@@ -375,13 +440,54 @@ require_once '../includes/sidebar.php';
             <form method="POST" id="formKembali">
                 <div class="modal-body">
                     <input type="hidden" name="id_peminjaman" id="kembaliId">
-                    <p class="text-muted mb-3">
-                        Konfirmasi pengembalian barang:
-                        <strong id="kembaliNamaBarang" class="text-dark"></strong>
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Tanggal Kembali Aktual <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="tanggal_kembali_aktual" id="kembaliTgl" value="<?= date('Y-m-d') ?>" required>
+
+                    <!-- Info readonly -->
+                    <div class="mb-3 p-3 rounded" style="background:#f8f9fa;">
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-muted">Barang:</span>
+                            <strong id="kembaliNamaBarang"></strong>
+                        </div>
+                        <div class="d-flex justify-content-between small mt-1">
+                            <span class="text-muted">Jumlah Dipinjam:</span>
+                            <strong id="kembaliInfoJumlah">0 unit</strong>
+                        </div>
+                    </div>
+
+                    <!-- Tiga field kondisi -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small text-success">Baik <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="jumlah_baik"
+                                   id="kembaliJmlBaik" min="0" value="0"
+                                   oninput="hitungTotal()" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small text-warning">Rusak</label>
+                            <input type="number" class="form-control" name="jumlah_rusak"
+                                   id="kembaliJmlRusak" min="0" value="0"
+                                   oninput="hitungTotal(); toggleCatatan()" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small text-danger">Hilang</label>
+                            <input type="number" class="form-control" name="jumlah_hilang"
+                                   id="kembaliJmlHilang" min="0" value="0"
+                                   oninput="hitungTotal(); toggleCatatan()" required>
+                        </div>
+                    </div>
+
+                    <!-- Live total counter -->
+                    <div class="alert py-2 px-3 mb-3 small d-flex justify-content-between align-items-center" id="totalAlert">
+                        <span>Total diisi:</span>
+                        <strong id="kembaliTotal">0</strong> / <strong id="kembaliMax">0</strong> unit
+                    </div>
+                    <div class="invalid-feedback d-block mb-2" id="errKembaliTotal"></div>
+
+                    <!-- Catatan kondisional -->
+                    <div class="mb-1" id="catatanKembaliContainer" style="display:none;">
+                        <label class="form-label fw-semibold small">Catatan <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="catatan_kembali" id="kembaliCatatan"
+                                  rows="3" placeholder="Jelaskan kondisi barang rusak atau hilang..."></textarea>
+                        <div class="invalid-feedback" id="errKembaliCatatan"></div>
                     </div>
                 </div>
                 <div class="modal-footer border-top">
@@ -397,28 +503,144 @@ require_once '../includes/sidebar.php';
 
 <script>
 
+    // Map stok tersedia dari dropdown barang
+    const stokMap = {
+        <?php
+        $barang_stok = mysqli_query($conn, "SELECT id_barang, stok_tersedia FROM view_katalog_barang");
+        $stok_pairs = [];
+        while ($bs = mysqli_fetch_assoc($barang_stok)) {
+            $stok_pairs[] = (int)$bs['id_barang'] . ': ' . (int)$bs['stok_tersedia'];
+        }
+        echo implode(", ", $stok_pairs);
+        ?>
+    };
+
     function bukaModalTambah() {
         document.getElementById('formTambah').reset();
         document.getElementById('tambahTglPinjam').value = new Date().toISOString().split('T')[0];
+        document.getElementById('tambahJumlah').value = 1;
+        document.getElementById('tambahJumlah').max = '';
+        document.getElementById('tambahJumlahInfo').textContent = 'Stok tersedia akan ditampilkan saat barang dipilih.';
         new bootstrap.Modal(document.getElementById('modalTambah')).show();
     }
 
-    function bukaModalKembali(id, nama) {
-        document.getElementById('kembaliId').value = id;
+    document.getElementById('tambahBarang').addEventListener('change', function() {
+        const idBarang = parseInt(this.value);
+        const jumlahInput = document.getElementById('tambahJumlah');
+        const infoEl = document.getElementById('tambahJumlahInfo');
+        if (idBarang && stokMap[idBarang] !== undefined) {
+            const stok = stokMap[idBarang];
+            jumlahInput.max = stok;
+            infoEl.textContent = 'Stok tersedia: ' + stok + ' unit';
+        } else {
+            jumlahInput.max = '';
+            infoEl.textContent = 'Stok tersedia akan ditampilkan saat barang dipilih.';
+        }
+    });
+
+    let jumlahDipinjam = 0;
+
+    function bukaModalKembali(id, nama, jumlah) {
+        document.getElementById('formKembali').reset();
+        document.getElementById('kembaliId').value    = id;
         document.getElementById('kembaliNamaBarang').textContent = nama;
-        document.getElementById('kembaliTgl').value = new Date().toISOString().split('T')[0];
+
+        jumlahDipinjam = parseInt(jumlah) || 1;
+        document.getElementById('kembaliInfoJumlah').textContent = jumlahDipinjam + ' unit';
+        document.getElementById('kembaliMax').textContent = jumlahDipinjam;
+
+        // Default: semua baik
+        document.getElementById('kembaliJmlBaik').value   = jumlahDipinjam;
+        document.getElementById('kembaliJmlRusak').value  = 0;
+        document.getElementById('kembaliJmlHilang').value = 0;
+
+        hitungTotal();
+        toggleCatatan();
+
+        // Bersihkan error lama
+        document.getElementById('errKembaliTotal').textContent   = '';
+        document.getElementById('errKembaliCatatan').textContent = '';
+        document.getElementById('kembaliCatatan').classList.remove('is-invalid');
+
         new bootstrap.Modal(document.getElementById('modalKembali')).show();
+    }
+
+    function hitungTotal() {
+        const baik   = parseInt(document.getElementById('kembaliJmlBaik').value)   || 0;
+        const rusak  = parseInt(document.getElementById('kembaliJmlRusak').value)  || 0;
+        const hilang = parseInt(document.getElementById('kembaliJmlHilang').value) || 0;
+        const total  = baik + rusak + hilang;
+
+        document.getElementById('kembaliTotal').textContent = total;
+
+        const alert = document.getElementById('totalAlert');
+        const err   = document.getElementById('errKembaliTotal');
+        if (total === jumlahDipinjam) {
+            alert.className = 'alert alert-success py-2 px-3 mb-3 small d-flex justify-content-between align-items-center';
+            err.textContent = '';
+        } else {
+            alert.className = 'alert alert-danger py-2 px-3 mb-3 small d-flex justify-content-between align-items-center';
+            err.textContent = total < jumlahDipinjam
+                ? 'Masih kurang ' + (jumlahDipinjam - total) + ' unit.'
+                : 'Melebihi jumlah dipinjam sebesar ' + (total - jumlahDipinjam) + ' unit.';
+        }
+    }
+
+    function toggleCatatan() {
+        const rusak  = parseInt(document.getElementById('kembaliJmlRusak').value)  || 0;
+        const hilang = parseInt(document.getElementById('kembaliJmlHilang').value) || 0;
+        const container = document.getElementById('catatanKembaliContainer');
+        const catatan   = document.getElementById('kembaliCatatan');
+
+        if (rusak > 0 || hilang > 0) {
+            container.style.display = 'block';
+            catatan.required = true;
+        } else {
+            container.style.display = 'none';
+            catatan.required = false;
+            catatan.value = '';
+        }
     }
 
     // Validasi form tambah
     document.getElementById('formTambah').addEventListener('submit', function(e) {
-        const tglPinjam = document.getElementById('tambahTglPinjam').value;
+        const tglPinjam  = document.getElementById('tambahTglPinjam').value;
         const tglKembali = document.getElementById('tambahTglKembali').value;
-        
         if (tglPinjam && tglKembali && tglKembali <= tglPinjam) {
             alert('Tenggat kembali harus setelah tanggal pinjam!');
             e.preventDefault();
         }
+    });
+
+    // Validasi form kembali
+    document.getElementById('formKembali').addEventListener('submit', function(e) {
+        let isValid = true;
+
+        const baik   = parseInt(document.getElementById('kembaliJmlBaik').value)   || 0;
+        const rusak  = parseInt(document.getElementById('kembaliJmlRusak').value)  || 0;
+        const hilang = parseInt(document.getElementById('kembaliJmlHilang').value) || 0;
+        const total  = baik + rusak + hilang;
+        const err    = document.getElementById('errKembaliTotal');
+
+        if (total !== jumlahDipinjam) {
+            err.textContent = 'Total kondisi harus tepat ' + jumlahDipinjam + ' unit (sekarang: ' + total + ').';
+            isValid = false;
+        } else {
+            err.textContent = '';
+        }
+
+        const catatanInput = document.getElementById('kembaliCatatan');
+        const errCatatan   = document.getElementById('errKembaliCatatan');
+        catatanInput.classList.remove('is-invalid');
+        errCatatan.textContent = '';
+
+        if ((rusak > 0 || hilang > 0) && !catatanInput.value.trim()) {
+            catatanInput.classList.add('is-invalid');
+            errCatatan.textContent = 'Catatan wajib diisi jika ada barang rusak atau hilang.';
+            isValid = false;
+        }
+
+        if (!isValid) e.preventDefault();
     });
 
 

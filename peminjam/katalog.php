@@ -14,6 +14,7 @@ $MAX_HARI = $setting['max_hari_pinjam'] ?? 7;
 
 $page_title   = "Katalog Barang — Inventaris Barang";
 $current_page = basename(__FILE__);
+$user_id      = (int) $_SESSION['user_id'];
 
 // ===== PROSES PEMINJAMAN =====
 if (isset($_POST['pinjam'])) {
@@ -21,7 +22,6 @@ if (isset($_POST['pinjam'])) {
     $jumlah          = (int) $_POST['jumlah'];
     $tgl_pinjam      = mysqli_real_escape_string($conn, $_POST['tanggal_pinjam']);
     $tgl_kembali_rec = mysqli_real_escape_string($conn, $_POST['tanggal_kembali_rencana']);
-    $user_id = (int) $_SESSION['user_id'];
 
     // Validasi jumlah minimal 1
     if ($jumlah < 1) {
@@ -30,7 +30,7 @@ if (isset($_POST['pinjam'])) {
         exit();
     }
 
-    // 1. CEK APAKAH USER SEDANG PINJAM BARANG YANG SAMA
+    // 1. CEK BATAS MAKSIMAL PINJAM PER JENIS BARANG
     $cek_sama = mysqli_query($conn, "
         SELECT SUM(jumlah) as total_dipinjam
         FROM peminjaman 
@@ -41,22 +41,12 @@ if (isset($_POST['pinjam'])) {
     $sudah_pinjam = mysqli_fetch_assoc($cek_sama);
     $total_dipinjam = $sudah_pinjam['total_dipinjam'] ?? 0;
     
-    if ($total_dipinjam > 0) {
-        $_SESSION['error'] = "⚠️ Anda sudah meminjam barang ini sebanyak $total_dipinjam unit. Silakan kembalikan terlebih dahulu sebelum meminjam lagi.";
-        header("Location: katalog.php");
-        exit();
-    }
-    
-    // 2. CEK TOTAL PINJAMAN AKTIF USER (BATAS MAKSIMAL)
-    $cek_total = mysqli_query($conn, "
-        SELECT SUM(jumlah) as total_barang 
-        FROM peminjaman 
-        WHERE id_user = $user_id AND status = 'dipinjam'
-    ");
-    $total_pinjam = mysqli_fetch_assoc($cek_total)['total_barang'] ?? 0;
-    
-    if (($total_pinjam + $jumlah) > $MAX_PINJAM) {
-        $_SESSION['error'] = "⚠️ Batas maksimal peminjaman adalah $MAX_PINJAM barang. Anda sudah meminjam $total_pinjam barang, tidak bisa menambah $jumlah barang lagi.";
+    if (($total_dipinjam + $jumlah) > $MAX_PINJAM) {
+        if ($total_dipinjam > 0) {
+            $_SESSION['error'] = "⚠️ Batas maksimal peminjaman untuk jenis barang ini adalah $MAX_PINJAM unit. Anda sedang meminjam $total_dipinjam unit, tidak bisa menambah $jumlah unit lagi.";
+        } else {
+            $_SESSION['error'] = "⚠️ Batas maksimal peminjaman untuk jenis barang ini adalah $MAX_PINJAM unit. Anda tidak bisa meminjam $jumlah unit.";
+        }
         header("Location: katalog.php");
         exit();
     }
@@ -78,6 +68,8 @@ if (isset($_POST['pinjam'])) {
                          VALUES ($id_barang, $jumlah, $user_id, '$tgl_pinjam', '$tgl_kembali_rec', 'dipinjam')";
         
         if (mysqli_query($conn, $query_insert)) {
+            // Stok tersedia dihitung otomatis oleh VIEW (stok - SUM active loans)
+            // Tidak perlu UPDATE barang.stok di sini
             header("Location: riwayat.php?status=pinjam_sukses");
             exit();
         } else {
@@ -118,7 +110,13 @@ $total_pages = ceil($total_rows / $per_page);
 
 // Query utama
 $query = "
-    SELECT *, cek_status_stok(stok_tersedia) AS status_stok 
+    SELECT *, 
+           cek_status_stok(stok_tersedia) AS status_stok,
+           (SELECT COALESCE(SUM(jumlah), 0) 
+            FROM peminjaman 
+            WHERE peminjaman.id_barang = view_katalog_barang.id_barang 
+              AND peminjaman.id_user = $user_id 
+              AND peminjaman.status = 'dipinjam') AS sudah_dipinjam
     FROM view_katalog_barang
     $where 
     ORDER BY nama_barang ASC 
@@ -158,7 +156,7 @@ require_once '../includes/sidebar.php';
         <i class="bi bi-info-circle"></i>
         <span>
             <strong>Aturan Peminjaman:</strong> 
-            Maksimal <strong><?= $MAX_PINJAM ?></strong> barang sekaligus | 
+            Maksimal <strong><?= $MAX_PINJAM ?></strong> unit per jenis barang per peminjaman | 
             Maksimal pinjam <strong><?= $MAX_HARI ?></strong> hari
         </span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -258,14 +256,18 @@ require_once '../includes/sidebar.php';
                         </span>
                     </div>
 
-                    <?php if ($row['stok_tersedia'] > 0): ?>
+                    <?php if ($row['stok_tersedia'] <= 0): ?>
+                        <button type="button" class="btn btn-outline-secondary w-100 mt-auto" disabled>
+                            <i class="bi bi-x-circle me-1"></i> Stok Habis
+                        </button>
+                    <?php elseif ($row['sudah_dipinjam'] >= $MAX_PINJAM): ?>
+                        <button type="button" class="btn btn-outline-warning w-100 mt-auto" disabled>
+                            <i class="bi bi-exclamation-circle me-1"></i> Batas Pinjam Tercapai
+                        </button>
+                    <?php else: ?>
                         <button type="button" class="btn btn-primary w-100 mt-auto" 
                                 onclick="bukaModalPinjam(<?= htmlspecialchars(json_encode($row), ENT_QUOTES) ?>)">
                             <i class="bi bi-clipboard-plus me-1"></i> Pinjam Barang
-                        </button>
-                    <?php else: ?>
-                        <button type="button" class="btn btn-outline-secondary w-100 mt-auto" disabled>
-                            <i class="bi bi-x-circle me-1"></i> Stok Habis
                         </button>
                     <?php endif; ?>
                 </div>
@@ -389,6 +391,7 @@ require_once '../includes/sidebar.php';
     // Variabel global untuk stok
     let stokTersedia = 0;
     let maxPinjam = 0;
+    const maxPinjamLimit = <?= $MAX_PINJAM ?>;
 
     // Fungsi kurang jumlah
     function kurangJumlah() {
@@ -418,9 +421,13 @@ require_once '../includes/sidebar.php';
         let val = parseInt(input.value);
         let err = document.getElementById('errPinjamJumlah');
         
-        if (val > stokTersedia) {
+        if (val > maxPinjam) {
             input.classList.add('is-invalid');
-            err.textContent = `Jumlah melebihi stok yang tersedia (${stokTersedia} unit)`;
+            if (maxPinjam < stokTersedia) {
+                err.textContent = `Jumlah melebihi sisa batas peminjaman barang ini (${maxPinjam} unit)`;
+            } else {
+                err.textContent = `Jumlah melebihi stok yang tersedia (${stokTersedia} unit)`;
+            }
             return false;
         }
         if (val < 1) {
@@ -442,17 +449,25 @@ require_once '../includes/sidebar.php';
         document.getElementById('pinjamKategori').textContent = barang.nama_kategori ?? 'Uncategorized';
         
         // Set stok
-        stokTersedia = barang.stok_tersedia;
-        maxPinjam = stokTersedia;
+        stokTersedia = parseInt(barang.stok_tersedia) || 0;
+        let sudahDipinjam = parseInt(barang.sudah_dipinjam) || 0;
+        let sisaBatas = maxPinjamLimit - sudahDipinjam;
+        maxPinjam = Math.min(stokTersedia, sisaBatas);
         
         // Reset dan set jumlah
         const jumlahInput = document.getElementById('pinjamJumlah');
         jumlahInput.value = 1;
-        jumlahInput.max = stokTersedia;
+        jumlahInput.max = maxPinjam;
         jumlahInput.min = 1;
         
         // Tampilkan info stok
-        document.getElementById('infoStokTersedia').innerHTML = `Stok tersedia: <strong>${stokTersedia}</strong> unit`;
+        let infoText = `Stok tersedia: <strong>${stokTersedia}</strong> unit`;
+        if (sudahDipinjam > 0) {
+            infoText += ` | Sudah dipinjam: <strong>${sudahDipinjam}</strong> unit (Sisa batas: <strong>${sisaBatas}</strong> unit)`;
+        } else {
+            infoText += ` | Batas maksimal: <strong>${maxPinjamLimit}</strong> unit`;
+        }
+        document.getElementById('infoStokTersedia').innerHTML = infoText;
         
         // Reset validasi jumlah
         jumlahInput.classList.remove('is-invalid');

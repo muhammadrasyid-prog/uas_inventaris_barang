@@ -43,8 +43,8 @@ $offset      = ($page - 1) * $per_page;
 $result = mysqli_query($conn, "
     SELECT b.*,
            k.nama_kategori,
-           (b.stok - COUNT(CASE WHEN p.status = 'dipinjam' THEN 1 END)) AS stok_tersedia,
-           cek_status_stok(b.stok - COUNT(CASE WHEN p.status = 'dipinjam' THEN 1 END)) AS status_stok
+           (b.stok - COALESCE(SUM(CASE WHEN p.status = 'dipinjam' THEN p.jumlah ELSE 0 END), 0)) AS stok_tersedia,
+           cek_status_stok(b.stok - COALESCE(SUM(CASE WHEN p.status = 'dipinjam' THEN p.jumlah ELSE 0 END), 0)) AS status_stok
     FROM barang b
     LEFT JOIN kategori k ON b.id_kategori = k.id_kategori
     LEFT JOIN peminjaman p ON b.id_barang = p.id_barang

@@ -55,15 +55,15 @@ require_once '../includes/sidebar.php';
             <form method="POST" class="row g-4">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">
-                        <i class="bi bi-box-seam me-1"></i> Maksimal Peminjaman per User
+                        <i class="bi bi-box-seam me-1"></i> Maksimal Peminjaman per Jenis Barang
                     </label>
                     <div class="input-group">
                         <input type="number" name="max_pinjam_per_user" 
                                class="form-control" value="<?= $setting['max_pinjam_per_user'] ?>" 
                                min="1" max="20" required>
-                        <span class="input-group-text">barang</span>
+                        <span class="input-group-text">unit</span>
                     </div>
-                    <small class="text-muted">Berapa banyak barang yang bisa dipinjam 1 user secara bersamaan?</small>
+                    <small class="text-muted">Batas maksimal jumlah unit yang dapat dipinjam untuk setiap jenis barang.</small>
                 </div>
 
                 <div class="col-md-6">
