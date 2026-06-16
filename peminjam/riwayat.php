@@ -9,7 +9,7 @@ if ($_SESSION['role'] !== 'peminjam') {
 
 $user_id = (int) $_SESSION['user_id'];
 
-// ===== PROSES KEMBALIKAN =====
+// PROSES KEMBALIKAN
 if (isset($_POST['kembalikan'])) {
     $id         = (int) $_POST['id_peminjaman'];
     $jml_baik   = max(0, (int) $_POST['jumlah_baik']);
@@ -72,7 +72,7 @@ if (isset($_POST['kembalikan'])) {
 $error_message = $_SESSION['error'] ?? null;
 unset($_SESSION['error']);
 
-$page_title   = "Riwayat Pinjam — Inventaris Barang";
+$page_title   = "Riwayat Pinjam";
 $current_page = basename(__FILE__);
 require_once '../includes/header.php';
 require_once '../includes/sidebar.php';

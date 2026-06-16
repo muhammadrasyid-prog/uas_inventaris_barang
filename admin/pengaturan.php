@@ -2,7 +2,7 @@
 require_once '../includes/config.php';
 requireAdmin();
 
-// ===== PROSES UPDATE PENGATURAN =====
+// PROSES UPDATE PENGATURAN
 if (isset($_POST['update'])) {
     $max_pinjam = (int) $_POST['max_pinjam_per_user'];
     $max_hari = (int) $_POST['max_hari_pinjam'];

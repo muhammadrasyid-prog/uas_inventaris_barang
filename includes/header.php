@@ -24,7 +24,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             min-height: 100vh;
         }
 
-        /* ===== SIDEBAR ===== */
+        /* SIDEBAR */
         #sidebar {
             width: 260px;
             min-height: 100vh;
@@ -130,7 +130,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             color: #ffdad6;
         }
 
-        /* ===== MAIN CONTENT ===== */
+        /* MAIN CONTENT */
         #main-content {
             margin-left: 260px;
             min-height: 100vh;
@@ -139,7 +139,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             transition: margin-left 0.3s ease-in-out;
         }
 
-        /* ===== TOPBAR ===== */
+        /* TOPBAR */
         .topbar {
             position: sticky;
             top: 0;
@@ -160,7 +160,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             margin: 0;
         }
 
-        /* ===== BACKDROP MOBILE ===== */
+        /* BACKDROP MOBILE */
         #sidebar-backdrop {
             display: none;
             position: fixed;
@@ -169,7 +169,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             z-index: 999;
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* RESPONSIVE */
         @media (max-width: 767.98px) {
             #sidebar {
                 transform: translateX(-100%);
@@ -185,7 +185,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             }
         }
 
-        /* ===== GLOBAL TABLE COMPACT STYLES ===== */
+        /* GLOBAL TABLE COMPACT STYLES */
         .table {
             font-size: 0.8125rem; /* 13px */
         }

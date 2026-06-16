@@ -2,7 +2,7 @@
 require_once '../includes/config.php';
 requireAdmin();
 
-// PROSES HAPUS (sebelum ada output apapun, agar header() redirect aman)
+// PROSES HAPUS
 if (isset($_GET['hapus'])) {
     $id = (int) $_GET['hapus'];
     mysqli_query($conn, "DELETE FROM barang WHERE id_barang = $id");
@@ -54,7 +54,7 @@ $result = mysqli_query($conn, "
     LIMIT $per_page OFFSET $offset
 ");
 
-// ===== AMBIL SEMUA KATEGORI untuk dropdown (sekali saja, dipakai ulang) =====
+// Dropdown Kategori
 $kategori_result = mysqli_query($conn, "SELECT * FROM kategori ORDER BY nama_kategori ASC");
 $kategori_list   = mysqli_fetch_all($kategori_result, MYSQLI_ASSOC);
 ?>

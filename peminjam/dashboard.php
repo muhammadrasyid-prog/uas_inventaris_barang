@@ -8,7 +8,7 @@ if ($_SESSION['role'] !== 'peminjam') {
     exit();
 }
 
-$page_title   = "Dashboard Peminjam — Inventaris Barang";
+$page_title   = "Dashboard";
 $current_page = basename(__FILE__);
 require_once '../includes/header.php';
 require_once '../includes/sidebar.php';

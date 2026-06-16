@@ -2,7 +2,7 @@
 require_once '../includes/config.php';
 requireAdmin();
 
-// ===== PROSES TAMBAH =====
+// PROSES TAMBAH
 if (isset($_POST['tambah'])) {
     $nama = htmlspecialchars(trim($_POST['nama_kategori']));
     if (!empty($nama)) {
@@ -13,7 +13,7 @@ if (isset($_POST['tambah'])) {
     }
 }
 
-// ===== PROSES EDIT =====
+// PROSES EDIT
 if (isset($_POST['edit'])) {
     $id   = (int) $_POST['id_kategori'];
     $nama = htmlspecialchars(trim($_POST['nama_kategori']));
@@ -25,7 +25,7 @@ if (isset($_POST['edit'])) {
     }
 }
 
-// ===== PROSES HAPUS =====
+// PROSES HAPUS
 if (isset($_GET['hapus'])) {
     $id = (int) $_GET['hapus'];
     mysqli_query($conn, "DELETE FROM kategori WHERE id_kategori = $id");
@@ -33,7 +33,7 @@ if (isset($_GET['hapus'])) {
     exit();
 }
 
-// ===== AMBIL DATA =====
+// AMBIL DATA
 $result = mysqli_query($conn, "
     SELECT k.*, COUNT(b.id_barang) as jumlah_barang
     FROM kategori k
@@ -259,4 +259,4 @@ require_once '../includes/sidebar.php';
     });
 
 </script>
-<?php require_once '../includes/footer.php'; ?>
+<?php require_once '../includes/footer.php'; ?>

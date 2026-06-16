@@ -2,11 +2,11 @@
 require_once '../includes/config.php';
 requireAdmin();
 
-$page_title = "Dashboard — Inventaris Barang";
+$page_title = "Dashboard";
 require_once '../includes/header.php';
 require_once '../includes/sidebar.php';
 
-// ===== QUERY STATISTIK =====
+// QUERY STATISTIK
 
 // Total barang
 $total_barang = mysqli_fetch_assoc(
@@ -34,7 +34,7 @@ $query_pinjam = "
            p.tanggal_pinjam, p.tanggal_kembali_rencana,
            CASE
                WHEN p.tanggal_kembali_rencana < CURDATE() THEN 'Terlambat'
-               ELSE 'Tepat Waktu'
+               ELSE 'Dipinjam'
            END AS keterangan_waktu
     FROM peminjaman p
     JOIN users u ON p.id_user = u.id_user
@@ -169,8 +169,8 @@ $result_pinjam = mysqli_query($conn, $query_pinjam);
                                                 <i class="bi bi-clock me-1"></i>Terlambat
                                             </span>
                                         <?php else: ?>
-                                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2">
-                                                <i class="bi bi-check-circle me-1"></i>Tepat Waktu
+                                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                                <i class="bi bi-hourglass-split me-1"></i>Sedang Dipinjam
                                             </span>
                                         <?php endif; ?>
                                     </td>

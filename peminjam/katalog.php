@@ -12,11 +12,11 @@ $setting = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM pengaturan WHER
 $MAX_PINJAM = $setting['max_pinjam_per_user'] ?? 5;
 $MAX_HARI = $setting['max_hari_pinjam'] ?? 7;
 
-$page_title   = "Katalog Barang — Inventaris Barang";
+$page_title   = "Katalog Barang";
 $current_page = basename(__FILE__);
 $user_id      = (int) $_SESSION['user_id'];
 
-// ===== PROSES PEMINJAMAN =====
+// PROSES PEMINJAMAN
 if (isset($_POST['pinjam'])) {
     $id_barang       = (int) $_POST['id_barang'];
     $jumlah          = (int) $_POST['jumlah'];

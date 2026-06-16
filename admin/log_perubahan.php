@@ -127,7 +127,7 @@ require_once '../includes/sidebar.php';
     <!-- Tabel Data -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0" style="color:#002645;">Riwayat Perubahan Data Barang (Trigger BEFORE UPDATE)</h6>
+            <h6 class="fw-bold mb-0" style="color:#002645;">Riwayat Perubahan Data Barang</h6>
             <span class="badge bg-primary rounded-pill"><?= $total_rows ?> log</span>
         </div>
         <div class="card-body p-0">

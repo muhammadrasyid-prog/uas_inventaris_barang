@@ -2,12 +2,12 @@
 require_once '../includes/config.php';
 requireAdmin();
 
-$page_title   = "Recycle Bin — Inventaris Barang";
+$page_title   = "Recycle Bin";
 $current_page = basename(__FILE__);
 require_once '../includes/header.php';
 require_once '../includes/sidebar.php';
 
-// ===== PROSES RESTORE (PEMULIHAN) =====
+// PROSES RESTORE (PEMULIHAN)
 if (isset($_GET['restore'])) {
     $id_hapus = (int) $_GET['restore'];
     
@@ -58,7 +58,7 @@ if (isset($_GET['restore'])) {
     }
 }
 
-// ===== PROSES PURGE (HAPUS PERMANEN SATUAN) =====
+// PROSES PURGE (HAPUS PERMANEN SATUAN)
 if (isset($_GET['purge'])) {
     $id_hapus = (int) $_GET['purge'];
     $query_get = "SELECT foto FROM log_penghapusan WHERE id_hapus = $id_hapus";
@@ -76,7 +76,7 @@ if (isset($_GET['purge'])) {
     }
 }
 
-// ===== PROSES KOSONGKAN BIN (KOSONGKAN SEMUA) =====
+// PROSES KOSONGKAN BIN (KOSONGKAN SEMUA)
 if (isset($_POST['empty_bin'])) {
     $result_all = mysqli_query($conn, "SELECT foto FROM log_penghapusan");
     while ($row = mysqli_fetch_assoc($result_all)) {
@@ -89,7 +89,7 @@ if (isset($_POST['empty_bin'])) {
     exit();
 }
 
-// ===== SEARCH & PAGINATION =====
+// SEARCH & PAGINATION
 $search = htmlspecialchars(trim($_GET['search'] ?? ''));
 $where  = "WHERE 1=1";
 if ($search) {
@@ -190,7 +190,7 @@ $result = mysqli_query($conn, $query);
     <!-- Tabel Data -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0" style="color:#002645;">Data Barang Terhapus (Trigger BEFORE DELETE)</h6>
+            <h6 class="fw-bold mb-0" style="color:#002645;">Data Barang Terhapus</h6>
             <span class="badge bg-danger rounded-pill"><?= $total_rows ?> item</span>
         </div>
         <div class="card-body p-0">
